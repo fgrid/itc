@@ -41,46 +41,6 @@ func (i *id) Norm() *id {
 	return i.asLeaf(i.left.value)
 }
 
-func (i *id) dec(unpacker *BitUnPacker) *id {
-	switch unpacker.Pop(2) {
-	case 0:
-		i.asLeaf(int(unpacker.Pop(1)))
-	case 1:
-		newId := newId()
-		newId.dec(unpacker)
-		i.asNodeWithIds(newIdWithValue(0), newId)
-	case 2:
-		newId := newId()
-		newId.dec(unpacker)
-		i.asNodeWithIds(newId, newIdWithValue(0))
-	case 3:
-		newLeft := newId()
-		newLeft.dec(unpacker)
-		newRight := newId()
-		newRight.dec(unpacker)
-		i.asNodeWithIds(newLeft, newRight)
-	}
-	return i
-}
-
-func (i *id) enc(packer *BitPacker) *BitPacker {
-	if i.isLeaf {
-		packer.Push(0, 2)
-		packer.Push(uint32(i.value), 1)
-	} else if i.left.isLeaf && i.left.value == 0 {
-		packer.Push(1, 2)
-		i.right.enc(packer)
-	} else if i.right.isLeaf && i.right.value == 0 {
-		packer.Push(2, 2)
-		i.left.enc(packer)
-	} else {
-		packer.Push(3, 2)
-		i.left.enc(packer)
-		i.right.enc(packer)
-	}
-	return packer
-}
-
 // Split an ID as defined in section "5.3.2 Fork"
 func (i *id) Split() (i1, i2 *id) {
 

@@ -1,3 +1,10 @@
+// ITC implements the interval tree clock as described in the paper
+// 'Interval Tree Clocks: A Logical Clock for Dynamic Systems' by Paulo Sergio Almeida,
+// Carlos Baquero and Victor Fonte. (http://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf)
+//
+// Causality tracking mechanisms can be modeled by a set of core operations: fork; event and join, that
+// act on stamps (logical clocks) whose structure is a pair (i, e), formed by an id and an event component
+// that encodes causally known events.
 package itc
 
 import "fmt"
@@ -7,22 +14,13 @@ type Stamp struct {
 	id    *id
 }
 
+// Create a new Stamp. New stamps are so called seed-Stamps (represented as: (1, 0)).
 func NewStamp() *Stamp {
 	return &Stamp{event: newEvent(), id: newId()}
 }
 
-func (s *Stamp) dec(unpacker *BitUnPacker) *Stamp {
-	s.id.dec(unpacker)
-	s.event.dec(unpacker)
-	return s
-}
-
-func (s *Stamp) enc(packer *BitPacker) *BitPacker {
-	s.id.enc(packer)
-	s.event.enc(packer)
-	return packer
-}
-
+// Tne event operation adds a new event to the event component, so that if (i, e') results from event((i, e))
+// the causal ordering is such that e < e'.
 func (s *Stamp) Event() {
 	oldE := s.event.clone()
 	newE := s.fill()
@@ -37,6 +35,8 @@ func (s *Stamp) fill() *event {
 	return fill(s.id, s.event)
 }
 
+// The fork operation allows the cloning of the causal past of a stamp, resulting in a pair of stamps that
+// have identical copies of the event component and distinct ids
 func (s *Stamp) Fork() *Stamp {
 	st := NewStamp()
 	id1, id2 := s.id.Split()
@@ -50,25 +50,34 @@ func (s *Stamp) grow() (*event, int) {
 	return grow(s.id, s.event)
 }
 
-func (s *Stamp) Join(s2 *Stamp) {
-	s.id = newId().sum(s.id, s2.id)
-	s.event = newEvent().join(s.event, s2.event)
+// This operation merges two stamps, producing a new one.
+func (s *Stamp) Join(other *Stamp) {
+	s.id = newId().sum(s.id, other.id)
+	s.event = newEvent().join(s.event, other.event)
 }
 
-func (s *Stamp) Leq(s2 *Stamp) bool {
-	return leq(s.event, s2.event)
+// Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (leq).
+func (s *Stamp) Leq(other *Stamp) bool {
+	return leq(s.event, other.event)
 }
 
-func (s *Stamp) Pack() []byte {
-	return s.enc(NewBitPacker()).Pack()
+// MarshalBinary encodes the stamp s into a binary form and returns the result.
+func (s *Stamp) MarshalBinary() ([]byte, error) {
+	bp := newBitPack()
+	bp.encodeStamp(s)
+	return bp.Pack(), nil
 }
 
+// String returns the string corresponding to stamp s.
 func (s *Stamp) String() string {
 	return fmt.Sprintf("(%s, %s)", s.id, s.event)
 }
 
-func (s *Stamp) UnPack(packed []byte) *Stamp {
-	return s.dec(NewBitUnPacker(packed))
+// UnmarshalBinary decodes the stamp s from the given binary form data (created by MarshalBinary).
+func (s *Stamp) UnmarshalBinary(data []byte) error {
+	bup := newBitUnPack(data)
+	bup.decodeStamp(s)
+	return nil
 }
 
 func fill(i *id, e *event) *event {

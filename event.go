@@ -39,80 +39,6 @@ func (e *event) clone() *event {
 	return result
 }
 
-func (e *event) dec(unpacker *BitUnPacker) *event {
-	if unpacker.Pop(1) == 1 {
-		return e.asLeaf(int(dec(2, unpacker)))
-	}
-	e.asNode(0, 0, 0)
-	switch unpacker.Pop(2) {
-	case 0:
-		e.right.dec(unpacker)
-	case 1:
-		e.left.dec(unpacker)
-	case 2:
-		e.left.dec(unpacker)
-		e.right.dec(unpacker)
-	case 3:
-		if unpacker.Pop(1) == 0 {
-			if unpacker.Pop(1) == 0 {
-				unpacker.Pop(1)
-				e.value = int(dec(2, unpacker))
-				e.right.dec(unpacker)
-			} else {
-				unpacker.Pop(1)
-				e.value = int(dec(2, unpacker))
-				e.left.dec(unpacker)
-			}
-		} else {
-			unpacker.Pop(1)
-			e.value = int(dec(2, unpacker))
-			e.left.dec(unpacker)
-			e.right.dec(unpacker)
-		}
-	}
-	return e
-}
-
-func (e *event) enc(packer *BitPacker) *BitPacker {
-	if e.isLeaf {
-		packer.Push(1, 1)
-		return enc(uint32(e.value), 2, packer)
-	}
-
-	packer.Push(0, 1)
-	if e.value == 0 {
-		if e.left.isLeaf && e.left.value == 0 {
-			packer.Push(0, 2)
-			return e.right.enc(packer)
-		}
-		if e.right.isLeaf && e.right.value == 0 {
-			packer.Push(1, 2)
-			return e.left.enc(packer)
-		}
-		packer.Push(2, 2)
-		e.left.enc(packer)
-		return e.right.enc(packer)
-	}
-
-	packer.Push(3, 2)
-	if e.left.isLeaf && e.left.value == 0 {
-		packer.Push(0, 1)
-		packer.Push(0, 1)
-		newEventWithValue(e.value).enc(packer)
-		return e.right.enc(packer)
-	}
-	if e.right.isLeaf && e.right.value == 0 {
-		packer.Push(0, 1)
-		packer.Push(1, 1)
-		newEventWithValue(e.value).enc(packer)
-		return e.left.enc(packer)
-	}
-	packer.Push(1, 1)
-	newEventWithValue(e.value).enc(packer)
-	e.left.enc(packer)
-	return e.right.enc(packer)
-}
-
 func (e *event) equals(o *event) bool {
 	return (e == nil && o == nil) ||
 		((e.isLeaf == o.isLeaf) &&
@@ -186,26 +112,6 @@ func (e *event) String() string {
 }
 
 // ----------
-func dec(B uint32, unpacker *BitUnPacker) uint32 {
-	max := uint32(1) << uint32(B)
-	if unpacker.Pop(1) == 0 {
-		return unpacker.Pop(B)
-	}
-	return max + dec(B+1, unpacker)
-}
-
-func enc(n, B uint32, packer *BitPacker) *BitPacker {
-	max := uint32(1) << uint32(B)
-	if n < max {
-		packer.Push(0, 1)
-		packer.Push(uint32(n), uint32(B))
-	} else {
-		packer.Push(1, 1)
-		enc(n-max, B+1, packer)
-	}
-	return packer
-}
-
 func leq(e1, e2 *event) bool {
 	if e1.isLeaf {
 		return e1.value <= e2.value

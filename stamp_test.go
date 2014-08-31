@@ -155,11 +155,28 @@ func TestStampEmptyStringer(t *testing.T) {
 	}
 }
 
-func ExampleEncodeStamp() {
-	stamp := NewStamp()
-	stamp.Fork()
-	bp := NewBitPacker()
-	fmt.Printf("enc(%s) = %s = % x => dec: %s\n", stamp, stamp.enc(bp), stamp.Pack(), NewStamp().UnPack(stamp.Pack()))
+func ExampleStamp_MarshalBinary_seed() {
+	seed := NewStamp()
+	seedData, _ := seed.MarshalBinary()
+	fmt.Printf("%s = % x\n", seed, seedData)
 	// Output:
-	// enc(((1, 0), 0)) = <<2:2, 0:2, 1:1, 1:1, 0:1, 0:2>> = 8c 00 00 00 => dec: ((1, 0), 0)
+	// (1, 0) = 30 00 00 00
+}
+
+func ExampleStamp_MarshalBinary_seedAfterFork() {
+	seed := NewStamp()
+	seed.Fork()
+	seedData, _ := seed.MarshalBinary()
+	fmt.Printf("%s = % x\n", seed, seedData)
+	// Output:
+	// ((1, 0), 0) = 8c 00 00 00
+}
+
+func ExampleStamp_UnmarshalBinary() {
+	data := []byte{0x8c, 00, 00, 00}
+	stamp := NewStamp()
+	stamp.UnmarshalBinary(data)
+	fmt.Printf("% x = %s\n", data, stamp)
+	// Output:
+	// 8c 00 00 00 = ((1, 0), 0)
 }
