@@ -1,4 +1,4 @@
-// ITC implements the interval tree clock as described in the paper
+// Package itc implements the interval tree clock as described in the paper
 // 'Interval Tree Clocks: A Logical Clock for Dynamic Systems' by Paulo Sergio Almeida,
 // Carlos Baquero and Victor Fonte. (http://gsd.di.uminho.pt/members/cbm/ps/itc2008.pdf)
 //
@@ -9,17 +9,18 @@ package itc
 
 import "fmt"
 
+// Stamp declares the state of the clock for a given identity and a given stream of events.
 type Stamp struct {
 	event *event
 	id    *id
 }
 
-// Create a new Stamp. New stamps are so called seed-Stamps (represented as: (1, 0)).
+// NewStamp creates a new so called seed-Stamp (represented as: (1, 0)).
 func NewStamp() *Stamp {
-	return &Stamp{event: newEvent(), id: newId()}
+	return &Stamp{event: newEvent(), id: newID()}
 }
 
-// Tne event operation adds a new event to the event component, so that if (i, e') results from event((i, e))
+// Event adds a new event to the clock's event component, so that if (i, e') results from event((i, e))
 // the causal ordering is such that e < e'.
 func (s *Stamp) Event() {
 	oldE := s.event.clone()
@@ -35,8 +36,8 @@ func (s *Stamp) fill() *event {
 	return fill(s.id, s.event)
 }
 
-// The fork operation allows the cloning of the causal past of a stamp, resulting in a pair of stamps that
-// have identical copies of the event component and distinct ids
+// Fork clones the causal past of a stamp, resulting in a pair of stamps that
+// have identical copies of the event component and distinct IDs.
 func (s *Stamp) Fork() *Stamp {
 	st := NewStamp()
 	id1, id2 := s.id.Split()
@@ -50,13 +51,13 @@ func (s *Stamp) grow() (*event, int) {
 	return grow(s.id, s.event)
 }
 
-// This operation merges two stamps, producing a new one.
+// Join merges two stamps, producing a new one.
 func (s *Stamp) Join(other *Stamp) {
-	s.id = newId().sum(s.id, other.id)
+	s.id = newID().sum(s.id, other.id)
 	s.event = newEvent().join(s.event, other.event)
 }
 
-// Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (leq).
+// Leq Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (leq).
 func (s *Stamp) Leq(other *Stamp) bool {
 	return leq(s.event, other.event)
 }
@@ -133,10 +134,9 @@ func grow(i *id, e *event) (*event, int) {
 		r.left = exl
 		r.right = e.right
 		return r, cl + 1
-	} else {
-		r := newEvent().asNode(e.value, 0, 0)
-		r.left = e.left
-		r.right = exr
-		return r, cr + 1
 	}
+	r := newEvent().asNode(e.value, 0, 0)
+	r.left = e.left
+	r.right = exr
+	return r, cr + 1
 }

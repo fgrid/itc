@@ -28,22 +28,22 @@ func exercisePack(bp *bitPack) (string, string) {
 }
 
 func ExampleBitPacke_EncodeId_Leaves() {
-	source0 := newId().asLeaf(0)
-	source1 := newId().asLeaf(1)
-	fmt.Printf("enc(%s) = %s\n", source0, newBitPack().encodeId(source0))
-	fmt.Printf("enc(%s) = %s\n", source1, newBitPack().encodeId(source1))
+	source0 := newID().asLeaf(0)
+	source1 := newID().asLeaf(1)
+	fmt.Printf("enc(%s) = %s\n", source0, newBitPack().encodeID(source0))
+	fmt.Printf("enc(%s) = %s\n", source1, newBitPack().encodeID(source1))
 	// Output:
 	// enc(0) = <<0:2, 0:1>>
 	// enc(1) = <<0:2, 1:1>>
 }
 
 func ExampleBitPack_EnocdeId_Nodes() {
-	sourceL := newId().asNode(0, 1)
-	sourceR := newId().asNode(1, 0)
-	sourceB := newId().asNode(1, 1)
-	fmt.Printf("enc(%s) = %s\n", sourceL, newBitPack().encodeId(sourceL))
-	fmt.Printf("enc(%s) = %s\n", sourceR, newBitPack().encodeId(sourceR))
-	fmt.Printf("enc(%s) = %s\n", sourceB, newBitPack().encodeId(sourceB))
+	sourceL := newID().asNode(0, 1)
+	sourceR := newID().asNode(1, 0)
+	sourceB := newID().asNode(1, 1)
+	fmt.Printf("enc(%s) = %s\n", sourceL, newBitPack().encodeID(sourceL))
+	fmt.Printf("enc(%s) = %s\n", sourceR, newBitPack().encodeID(sourceR))
+	fmt.Printf("enc(%s) = %s\n", sourceB, newBitPack().encodeID(sourceB))
 	// Output:
 	// enc((0, 1)) = <<1:2, 0:2, 1:1>>
 	// enc((1, 0)) = <<2:2, 0:2, 1:1>>

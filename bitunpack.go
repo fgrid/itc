@@ -61,27 +61,27 @@ func (bup *bitUnPack) decodeEvent() *event {
 	return e
 }
 
-func (bup *bitUnPack) decodeId() *id {
-	i := newId()
+func (bup *bitUnPack) decodeID() *id {
+	i := newID()
 	switch bup.Pop(2) {
 	case 0:
 		i.asLeaf(int(bup.Pop(1)))
 	case 1:
-		newId := bup.decodeId()
-		i.asNodeWithIds(newIdWithValue(0), newId)
+		newID := bup.decodeID()
+		i.asNodeWithIds(newIDWithValue(0), newID)
 	case 2:
-		newId := bup.decodeId()
-		i.asNodeWithIds(newId, newIdWithValue(0))
+		newID := bup.decodeID()
+		i.asNodeWithIds(newID, newIDWithValue(0))
 	case 3:
-		newLeft := bup.decodeId()
-		newRight := bup.decodeId()
+		newLeft := bup.decodeID()
+		newRight := bup.decodeID()
 		i.asNodeWithIds(newLeft, newRight)
 	}
 	return i
 }
 
 func (bup *bitUnPack) decodeStamp(s *Stamp) {
-	s.id = bup.decodeId()
+	s.id = bup.decodeID()
 	s.event = bup.decodeEvent()
 }
 

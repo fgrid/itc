@@ -6,7 +6,7 @@ import (
 )
 
 func TestIdAsLeaf(t *testing.T) {
-	i := newId()
+	i := newID()
 	i.asLeaf(0)
 	if !i.isLeaf {
 		t.Error("id is not recognized as leaf after \"asLeaf()\"")
@@ -17,14 +17,14 @@ func TestIdAsLeaf(t *testing.T) {
 }
 
 func TestIdLeafStringer(t *testing.T) {
-	idString := newId().asLeaf(1).String()
+	idString := newID().asLeaf(1).String()
 	if idString != "1" {
 		t.Errorf("leaf id did not serialize as expected %q", idString)
 	}
 }
 
 func TestIdNodeStringer(t *testing.T) {
-	id := newId().asNode(1, 2)
+	id := newID().asNode(1, 2)
 	idString := id.String()
 	if idString != "(1, 2)" {
 		t.Errorf("node id did not serialize as expected %q", idString)
@@ -32,7 +32,7 @@ func TestIdNodeStringer(t *testing.T) {
 }
 
 func ExampleSplitId0() {
-	source := newIdWithValue(0)
+	source := newIDWithValue(0)
 	i1, i2 := source.Split()
 
 	fmt.Printf("split(%s) = (%s, %s)\n", source, i1, i2)
@@ -41,7 +41,7 @@ func ExampleSplitId0() {
 }
 
 func ExampleSplitId1() {
-	source := newIdWithValue(1)
+	source := newIDWithValue(1)
 	i1, i2 := source.Split()
 
 	fmt.Printf("split(%s) = (%s, %s)\n", source, i1, i2)
@@ -50,7 +50,7 @@ func ExampleSplitId1() {
 }
 
 func ExampleSplitIdLeafNode() {
-	source := newId().asNode(0, 1)
+	source := newID().asNode(0, 1)
 	i1, i2 := source.Split()
 
 	fmt.Printf("split(%s) = (%s, %s)\n", source, i1, i2)
@@ -59,7 +59,7 @@ func ExampleSplitIdLeafNode() {
 }
 
 func ExampleSplitIdNodeLeaf() {
-	source := newId().asNode(1, 0)
+	source := newID().asNode(1, 0)
 	i1, i2 := source.Split()
 
 	fmt.Printf("split(%s) = (%s, %s)\n", source, i1, i2)
@@ -68,7 +68,7 @@ func ExampleSplitIdNodeLeaf() {
 }
 
 func ExampleSplitIdNodeNode() {
-	source := newId().asNode(1, 1)
+	source := newID().asNode(1, 1)
 	i1, i2 := source.Split()
 
 	fmt.Printf("split(%s) = (%s, %s)\n", source, i1, i2)
@@ -77,7 +77,7 @@ func ExampleSplitIdNodeNode() {
 }
 
 func ExampleNormalizeIdZero() {
-	source := newId().asNode(0, 0)
+	source := newID().asNode(0, 0)
 	sourceString := source.String()
 	fmt.Printf("norm(%s) = %s\n", sourceString, source.Norm())
 	// Output:
@@ -85,7 +85,7 @@ func ExampleNormalizeIdZero() {
 }
 
 func ExampleNormalizeIdOne() {
-	source := newId().asNode(1, 1)
+	source := newID().asNode(1, 1)
 	sourceString := source.String()
 	fmt.Printf("norm(%s) = %s\n", sourceString, source.Norm())
 	// Output:
@@ -93,18 +93,18 @@ func ExampleNormalizeIdOne() {
 }
 
 func ExampleSumIdLeaf() {
-	i1 := newIdWithValue(0)
-	i2 := newIdWithValue(1)
-	fmt.Printf("sum(%s, %s) = %s\n", i1, i2, newId().sum(i1, i2))
-	fmt.Printf("sum(%s, %s) = %s\n", i2, i1, newId().sum(i2, i1))
+	i1 := newIDWithValue(0)
+	i2 := newIDWithValue(1)
+	fmt.Printf("sum(%s, %s) = %s\n", i1, i2, newID().sum(i1, i2))
+	fmt.Printf("sum(%s, %s) = %s\n", i2, i1, newID().sum(i2, i1))
 	// Output:
 	// sum(0, 1) = 1
 	// sum(1, 0) = 1
 }
 
 func ExampleSumIdNode() {
-	i1, i2 := newId().Split()
-	fmt.Printf("sum(%s, %s) = %s\n", i1, i2, newId().sum(i1, i2))
+	i1, i2 := newID().Split()
+	fmt.Printf("sum(%s, %s) = %s\n", i1, i2, newID().sum(i1, i2))
 	// Output:
 	// sum((1, 0), (0, 1)) = 1
 }

@@ -54,11 +54,11 @@ func ExampleBitUnPack_decodeEvent_Nodes() {
 	// dec(<<0:1, 3:2, 1:1, 1:1, 0:1, 1:2, 1:1, 0:1, 1:2, 1:1, 0:1, 1:2>>) = (1, 1, 1)
 }
 
-func ExampleBitUnPack_decodeId_Leaves() {
+func ExampleBitUnPack_decodeID_Leaves() {
 	packer := newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeId(newId().asLeaf(0)), newBitUnPack(packer.Pack()).decodeId())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeID(newID().asLeaf(0)), newBitUnPack(packer.Pack()).decodeID())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeId(newId().asLeaf(1)), newBitUnPack(packer.Pack()).decodeId())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeID(newID().asLeaf(1)), newBitUnPack(packer.Pack()).decodeID())
 	// Output:
 	// dec(<<0:2, 0:1>>) = 0
 	// dec(<<0:2, 1:1>>) = 1
@@ -66,11 +66,11 @@ func ExampleBitUnPack_decodeId_Leaves() {
 
 func ExampleEncDecIdNode() {
 	packer := newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeId(newId().asNode(0, 1)), newBitUnPack(packer.Pack()).decodeId())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeID(newID().asNode(0, 1)), newBitUnPack(packer.Pack()).decodeID())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeId(newId().asNode(1, 0)), newBitUnPack(packer.Pack()).decodeId())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeID(newID().asNode(1, 0)), newBitUnPack(packer.Pack()).decodeID())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeId(newId().asNode(1, 1)), newBitUnPack(packer.Pack()).decodeId())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeID(newID().asNode(1, 1)), newBitUnPack(packer.Pack()).decodeID())
 	// Output:
 	// dec(<<1:2, 0:2, 1:1>>) = (0, 1)
 	// dec(<<2:2, 0:2, 1:1>>) = (1, 0)

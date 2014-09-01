@@ -11,11 +11,11 @@ type id struct {
 	isLeaf      bool
 }
 
-func newId() *id {
-	return newIdWithValue(1)
+func newID() *id {
+	return newIDWithValue(1)
 }
 
-func newIdWithValue(value int) *id {
+func newIDWithValue(value int) *id {
 	return &id{value: value, isLeaf: true}
 }
 
@@ -25,7 +25,7 @@ func (i *id) asLeaf(value int) *id {
 }
 
 func (i *id) asNode(left, right int) *id {
-	return i.asNodeWithIds(newIdWithValue(left), newIdWithValue(right))
+	return i.asNodeWithIds(newIDWithValue(left), newIDWithValue(right))
 }
 
 func (i *id) asNodeWithIds(left, right *id) *id {
@@ -44,8 +44,8 @@ func (i *id) Norm() *id {
 // Split an ID as defined in section "5.3.2 Fork"
 func (i *id) Split() (i1, i2 *id) {
 
-	i1 = newId()
-	i2 = newId()
+	i1 = newID()
+	i2 = newID()
 
 	if i.isLeaf && i.value == 0 {
 		// split(0) = (0, 0)
@@ -58,17 +58,17 @@ func (i *id) Split() (i1, i2 *id) {
 	} else if (i.left.isLeaf && i.left.value == 0) && (!i.right.isLeaf || i.right.value == 1) {
 		// split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i)
 		r1, r2 := i.right.Split()
-		i1.asNodeWithIds(newIdWithValue(0), r1)
-		i2.asNodeWithIds(newIdWithValue(0), r2)
+		i1.asNodeWithIds(newIDWithValue(0), r1)
+		i2.asNodeWithIds(newIDWithValue(0), r2)
 	} else if (!i.left.isLeaf || i.left.value == 1) && (i.right.isLeaf && i.right.value == 0) {
 		// split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i)
 		l1, l2 := i.left.Split()
-		i1.asNodeWithIds(l1, newIdWithValue(0))
-		i2.asNodeWithIds(l2, newIdWithValue(0))
+		i1.asNodeWithIds(l1, newIDWithValue(0))
+		i2.asNodeWithIds(l2, newIDWithValue(0))
 	} else if (!i.left.isLeaf || i.left.value == 1) && (!i.right.isLeaf || i.right.value == 1) {
 		// split((i1, i2)) = ((i1, 0), (0, i2))
-		i1.asNodeWithIds(i.left, newIdWithValue(0))
-		i2.asNodeWithIds(newIdWithValue(0), i.right)
+		i1.asNodeWithIds(i.left, newIDWithValue(0))
+		i2.asNodeWithIds(newIDWithValue(0), i.right)
 	} else {
 		log.Fatalf("unable to split id with unexpected setup: %s", i.String())
 	}
@@ -95,5 +95,5 @@ func (i *id) sum(i1, i2 *id) *id {
 		i.isLeaf = i1.isLeaf
 		return i
 	}
-	return i.asNodeWithIds(newId().sum(i1.left, i2.left), newId().sum(i1.right, i2.right)).Norm()
+	return i.asNodeWithIds(newID().sum(i1.left, i2.left), newID().sum(i1.right, i2.right)).Norm()
 }

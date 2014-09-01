@@ -132,25 +132,25 @@ func enc(n, B uint32, packer *bitPack) *bitPack {
 	return packer
 }
 
-func (bp *bitPack) encodeId(i *id) *bitPack {
+func (bp *bitPack) encodeID(i *id) *bitPack {
 	if i.isLeaf {
 		bp.push(0, 2)
 		bp.push(uint32(i.value), 1)
 	} else if i.left.isLeaf && i.left.value == 0 {
 		bp.push(1, 2)
-		bp.encodeId(i.right)
+		bp.encodeID(i.right)
 	} else if i.right.isLeaf && i.right.value == 0 {
 		bp.push(2, 2)
-		bp.encodeId(i.left)
+		bp.encodeID(i.left)
 	} else {
 		bp.push(3, 2)
-		bp.encodeId(i.left)
-		bp.encodeId(i.right)
+		bp.encodeID(i.left)
+		bp.encodeID(i.right)
 	}
 	return bp
 }
 
 func (bp *bitPack) encodeStamp(s *Stamp) {
-	bp.encodeId(s.id)
+	bp.encodeID(s.id)
 	bp.encodeEvent(s.event)
 }
