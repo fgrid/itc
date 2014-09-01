@@ -54,7 +54,7 @@ func (s *Stamp) grow() (*event, int) {
 // Join merges two stamps, producing a new one.
 func (s *Stamp) Join(other *Stamp) {
 	s.id = newID().sum(s.id, other.id)
-	s.event = newEvent().join(s.event, other.event)
+	s.event = join(s.event, other.event)
 }
 
 // Leq Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (leq).
@@ -86,18 +86,18 @@ func fill(i *id, e *event) *event {
 		if i.value == 0 {
 			return e
 		}
-		return newEventWithValue(e.max())
+		return newLeafEvent(e.max())
 	}
 	if e.isLeaf {
 		return e
 	}
-	r := newEvent().asNode(e.value, 0, 0)
+	r := newNodeEvent(e.value, 0, 0)
 	if i.left.isLeaf && i.left.value == 1 {
 		r.right = fill(i.right, e.right)
-		r.left = newEventWithValue(max(e.left.max(), r.right.min()))
+		r.left = newLeafEvent(max(e.left.max(), r.right.min()))
 	} else if i.right.isLeaf && i.right.value == 1 {
 		r.left = fill(i.left, e.left)
-		r.right = newEventWithValue(max(e.right.max(), r.left.min()))
+		r.right = newLeafEvent(max(e.right.max(), r.left.min()))
 	} else {
 		r.left = fill(i.left, e.left)
 		r.right = fill(i.right, e.right)
@@ -108,21 +108,21 @@ func fill(i *id, e *event) *event {
 func grow(i *id, e *event) (*event, int) {
 	if e.isLeaf {
 		if i.isLeaf && i.value == 1 {
-			return newEventWithValue(e.value + 1), 0
+			return newLeafEvent(e.value + 1), 0
 		}
-		ex, c := grow(i, newEvent().asNode(e.value, 0, 0))
+		ex, c := grow(i, newNodeEvent(e.value, 0, 0))
 		return ex, c + 99999
 	}
 	if i.left.isLeaf && i.left.value == 0 {
 		exr, cr := grow(i.right, e.right)
-		r := newEvent().asNode(e.value, 0, 0)
+		r := newNodeEvent(e.value, 0, 0)
 		r.left = e.left
 		r.right = exr
 		return r, cr + 1
 	}
 	if i.right.isLeaf && i.right.value == 0 {
 		exl, cl := grow(i.left, e.left)
-		r := newEvent().asNode(e.value, 0, 0)
+		r := newNodeEvent(e.value, 0, 0)
 		r.left = exl
 		r.right = e.right
 		return r, cl + 1
@@ -130,12 +130,12 @@ func grow(i *id, e *event) (*event, int) {
 	exl, cl := grow(i.left, e.left)
 	exr, cr := grow(i.right, e.right)
 	if cl < cr {
-		r := newEvent().asNode(e.value, 0, 0)
+		r := newNodeEvent(e.value, 0, 0)
 		r.left = exl
 		r.right = e.right
 		return r, cl + 1
 	}
-	r := newEvent().asNode(e.value, 0, 0)
+	r := newNodeEvent(e.value, 0, 0)
 	r.left = e.left
 	r.right = exr
 	return r, cr + 1

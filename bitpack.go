@@ -20,7 +20,7 @@ func newBitPack() *bitPack {
 	return &bitPack{entries: make([]bitPackEntry, 0), packed: make([]byte, 4)}
 }
 
-func (bp *bitPack) push(value, size uint32) *bitPack {
+func (bp *bitPack) push(value, size uint32) {
 	bp.entries = append(bp.entries, bitPackEntry{value: value, size: size})
 	freeBits := uint32(8*len(bp.packed)) - bp.bitLength
 	index := bp.bitLength / 32
@@ -44,7 +44,6 @@ func (bp *bitPack) push(value, size uint32) *bitPack {
 		bp.packed = append(bp.packed[:], buf[:]...)
 	}
 	bp.bitLength += size
-	return bp
 }
 
 func (bp *bitPack) Pack() []byte {
@@ -105,17 +104,17 @@ func (bp *bitPack) encodeEvent(e *event) *bitPack {
 	if e.left.isLeaf && e.left.value == 0 {
 		bp.push(0, 1)
 		bp.push(0, 1)
-		bp.encodeEvent(newEventWithValue(e.value))
+		bp.encodeEvent(newLeafEvent(e.value))
 		return bp.encodeEvent(e.right)
 	}
 	if e.right.isLeaf && e.right.value == 0 {
 		bp.push(0, 1)
 		bp.push(1, 1)
-		bp.encodeEvent(newEventWithValue(e.value))
+		bp.encodeEvent(newLeafEvent(e.value))
 		return bp.encodeEvent(e.left)
 	}
 	bp.push(1, 1)
-	bp.encodeEvent(newEventWithValue(e.value))
+	bp.encodeEvent(newLeafEvent(e.value))
 	bp.encodeEvent(e.left)
 	return bp.encodeEvent(e.right)
 }

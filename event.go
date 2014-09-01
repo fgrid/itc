@@ -9,21 +9,15 @@ type event struct {
 }
 
 func newEvent() *event {
-	return newEventWithValue(0)
+	return newLeafEvent(0)
 }
 
-func newEventWithValue(value int) *event {
+func newLeafEvent(value int) *event {
 	return &event{value: value, isLeaf: true}
 }
 
-func (e *event) asLeaf(value int) *event {
-	e.value, e.isLeaf, e.left, e.right = value, true, nil, nil
-	return e
-}
-
-func (e *event) asNode(value, left, right int) *event {
-	e.value, e.isLeaf, e.left, e.right = value, false, newEventWithValue(left), newEventWithValue(right)
-	return e
+func newNodeEvent(value, left, right int) *event {
+	return &event{value: value, isLeaf: false, left: newLeafEvent(left), right: newLeafEvent(right)}
 }
 
 func (e *event) clone() *event {
@@ -47,32 +41,12 @@ func (e *event) equals(o *event) bool {
 			e.right.equals(o.right))
 }
 
-func (e *event) join(e1, e2 *event) *event {
-	if e1.isLeaf && e2.isLeaf {
-		return e.asLeaf(max(e1.value, e2.value))
-	}
-	if e1.isLeaf {
-		return e.join(newEvent().asNode(e1.value, 0, 0), e2)
-	}
-	if e2.isLeaf {
-		return e.join(e1, newEvent().asNode(e2.value, 0, 0))
-	}
-	if e1.value > e2.value {
-		return e.join(e2, e1)
-	}
-	e.isLeaf = false
-	e.value = e1.value
-	e.left = newEvent().join(e1.left, e2.left.lift(e2.value-e1.value))
-	e.right = newEvent().join(e1.right, e2.right.lift(e2.value-e1.value))
-	return e.norm()
-}
-
 func (e *event) norm() *event {
 	if e.isLeaf {
 		return e
 	}
 	if e.left.isLeaf && e.right.isLeaf && e.left.value == e.right.value {
-		return e.asLeaf(e.value + e.left.value)
+		return newLeafEvent(e.value + e.left.value)
 	}
 	m := min(e.left.min(), e.right.min())
 	e.left = e.left.norm().sink(m)
@@ -112,6 +86,25 @@ func (e *event) String() string {
 }
 
 // ----------
+func join(e1, e2 *event) *event {
+	if e1.isLeaf && e2.isLeaf {
+		return newLeafEvent(max(e1.value, e2.value))
+	}
+	if e1.isLeaf {
+		return join(newNodeEvent(e1.value, 0, 0), e2)
+	}
+	if e2.isLeaf {
+		return join(e1, newNodeEvent(e2.value, 0, 0))
+	}
+	if e1.value > e2.value {
+		return join(e2, e1)
+	}
+	e := newNodeEvent(e1.value, 0, 0)
+	e.left = join(e1.left, e2.left.lift(e2.value-e1.value))
+	e.right = join(e1.right, e2.right.lift(e2.value-e1.value))
+	return e.norm()
+}
+
 func leq(e1, e2 *event) bool {
 	if e1.isLeaf {
 		return e1.value <= e2.value

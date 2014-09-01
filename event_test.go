@@ -6,7 +6,7 @@ import (
 )
 
 func TestEventAsLeaf(t *testing.T) {
-	e := newEvent().asLeaf(1)
+	e := newLeafEvent(1)
 	if !e.isLeaf {
 		t.Error("event is not recognized as leaf after \"setAsLeaf()\"")
 	}
@@ -16,7 +16,7 @@ func TestEventAsLeaf(t *testing.T) {
 }
 
 func TestEventAsNode(t *testing.T) {
-	e := newEvent().asNode(1, 1, 1)
+	e := newNodeEvent(1, 1, 1)
 	if e.isLeaf {
 		t.Error("event is not recognized as node after \"setAsNode()\"")
 	}
@@ -26,14 +26,14 @@ func TestEventAsNode(t *testing.T) {
 }
 
 func TestEventLeafStringer(t *testing.T) {
-	eventString := newEvent().asLeaf(0).String()
+	eventString := newLeafEvent(0).String()
 	if eventString != "0" {
 		t.Errorf("leaf event did not serialize as expected %q", eventString)
 	}
 }
 
 func TestEventNodeStringer(t *testing.T) {
-	event := newEvent().asNode(0, 1, 2)
+	event := newNodeEvent(0, 1, 2)
 	eventString := event.String()
 	if eventString != "(0, 1, 2)" {
 		t.Errorf("node event did not serialize as expected %q", eventString)
@@ -41,7 +41,7 @@ func TestEventNodeStringer(t *testing.T) {
 }
 
 func ExampleLiftLeafEvent() {
-	event := newEventWithValue(4)
+	event := newLeafEvent(4)
 	sourceString := event.String()
 	fmt.Printf("lift(%s, 3) = %s", sourceString, event.lift(3))
 	// Output:
@@ -49,7 +49,7 @@ func ExampleLiftLeafEvent() {
 }
 
 func ExampleLiftNodeEvent() {
-	event := newEvent().asNode(1, 2, 3)
+	event := newNodeEvent(1, 2, 3)
 	sourceString := event.String()
 	fmt.Printf("lift(%s, 3) = %s", sourceString, event.lift(3))
 	// Output:
@@ -57,7 +57,7 @@ func ExampleLiftNodeEvent() {
 }
 
 func ExampleSinkLeafEvent() {
-	event := newEventWithValue(4)
+	event := newLeafEvent(4)
 	sourceString := event.String()
 	fmt.Printf("sink(%s, 3) = %s", sourceString, event.sink(3))
 	// Output:
@@ -65,7 +65,7 @@ func ExampleSinkLeafEvent() {
 }
 
 func ExampleSinkNodeEvent() {
-	event := newEvent().asNode(4, 2, 3)
+	event := newNodeEvent(4, 2, 3)
 	sourceString := event.String()
 	fmt.Printf("sink(%s, 3) = %s", sourceString, event.sink(3))
 	// Output:
@@ -73,7 +73,7 @@ func ExampleSinkNodeEvent() {
 }
 
 func ExampleNormLeafEvent() {
-	event := newEventWithValue(4)
+	event := newLeafEvent(4)
 	sourceString := event.String()
 	fmt.Printf("norm(%s) = %s", sourceString, event.norm())
 	// Output:
@@ -81,7 +81,7 @@ func ExampleNormLeafEvent() {
 }
 
 func ExampleNormNodeEventWithLeaves() {
-	event := newEvent().asNode(2, 1, 1)
+	event := newNodeEvent(2, 1, 1)
 	sourceString := event.String()
 	fmt.Printf("norm(%s) = %s", sourceString, event.norm())
 	// Output:
@@ -89,9 +89,9 @@ func ExampleNormNodeEventWithLeaves() {
 }
 
 func ExampleNormNodeEventWithNodes() {
-	event := newEvent().asNode(2, 1, 1)
-	event.left.asNode(2, 1, 0)
-	event.right.asLeaf(3)
+	event := newNodeEvent(2, 1, 1)
+	event.left = newNodeEvent(2, 1, 0)
+	event.right = newLeafEvent(3)
 	sourceString := event.String()
 	fmt.Printf("norm(%s) = %s", sourceString, event.norm())
 	// Output:
@@ -99,24 +99,24 @@ func ExampleNormNodeEventWithNodes() {
 }
 
 func ExampleMinOfLeafEvent() {
-	event := newEventWithValue(4)
+	event := newLeafEvent(4)
 	fmt.Printf("min(%s) = %d", event, event.min())
 	// Output:
 	// min(4) = 4
 }
 
 func ExampleJoinLeafEvents() {
-	e1 := newEventWithValue(7)
-	e2 := newEventWithValue(9)
-	fmt.Printf("join(%s, %s) = %s\n", e1, e2, newEvent().join(e1, e2))
+	e1 := newLeafEvent(7)
+	e2 := newLeafEvent(9)
+	fmt.Printf("join(%s, %s) = %s\n", e1, e2, join(e1, e2))
 	// Output:
 	// join(7, 9) = 9
 }
 
 func ExampleJoinNodeEvents() {
-	e1 := newEvent().asNode(1, 2, 3)
-	e2 := newEvent().asNode(4, 5, 6)
-	fmt.Printf("join(%s, %s) = %s\n", e1, e2, newEvent().join(e1, e2))
+	e1 := newNodeEvent(1, 2, 3)
+	e2 := newNodeEvent(4, 5, 6)
+	fmt.Printf("join(%s, %s) = %s\n", e1, e2, join(e1, e2))
 	// Output:
 	// join((1, 2, 3), (4, 5, 6)) = (9, 0, 1)
 }
@@ -129,9 +129,9 @@ func ExampleEqualsNilEvents() {
 }
 
 func ExampleLeqLeafEvents() {
-	e1 := newEventWithValue(1)
-	e2 := newEventWithValue(2)
-	s2 := newEventWithValue(2)
+	e1 := newLeafEvent(1)
+	e2 := newLeafEvent(2)
+	s2 := newLeafEvent(2)
 
 	fmt.Printf("leq(%s, %s) = %t\n", e1, e2, leq(e1, e2))
 	fmt.Printf("leq(%s, %s) = %t\n", e2, e1, leq(e2, e1))
@@ -144,10 +144,10 @@ func ExampleLeqLeafEvents() {
 }
 
 func ExampleLeqLeftLeaf() {
-	e1 := newEventWithValue(1)
-	e2 := newEvent().asNode(2, 1, 1)
-	e3 := newEventWithValue(3)
-	e4 := newEvent().asNode(1, 1, 1)
+	e1 := newLeafEvent(1)
+	e2 := newNodeEvent(2, 1, 1)
+	e3 := newLeafEvent(3)
+	e4 := newNodeEvent(1, 1, 1)
 
 	fmt.Printf("leq(%s, %s) = %t\n", e1, e2, leq(e1, e2))
 	fmt.Printf("leq(%s, %s) = %t\n", e1, e4, leq(e1, e4))
@@ -160,9 +160,9 @@ func ExampleLeqLeftLeaf() {
 }
 
 func ExampleLeqLeftNode() {
-	e1 := newEvent().asNode(2, 1, 1)
-	e2 := newEventWithValue(2)
-	e3 := newEvent().asNode(2, 1, 1)
+	e1 := newNodeEvent(2, 1, 1)
+	e2 := newLeafEvent(2)
+	e3 := newNodeEvent(2, 1, 1)
 
 	fmt.Printf("leq(%s, %s) = %t\n", e1, e2, leq(e1, e2))
 	fmt.Printf("leq(%s, %s) = %t\n", e1, e3, leq(e1, e3))

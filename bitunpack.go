@@ -27,11 +27,10 @@ func (bup *bitUnPack) Pop(size uint32) (value uint32) {
 }
 
 func (bup *bitUnPack) decodeEvent() *event {
-	e := newEvent()
 	if bup.Pop(1) == 1 {
-		return e.asLeaf(int(dec(2, bup)))
+		return newLeafEvent(int(dec(2, bup)))
 	}
-	e.asNode(0, 0, 0)
+	e := newNodeEvent(0, 0, 0)
 	switch bup.Pop(2) {
 	case 0:
 		e.right = bup.decodeEvent()

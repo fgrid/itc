@@ -21,11 +21,11 @@ func ExamplePopSimple() {
 
 func ExampleBitUnPack_decodeEvent_Leaves() {
 	packer := newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEventWithValue(0)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newLeafEvent(0)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEventWithValue(1)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newLeafEvent(1)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEventWithValue(13)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newLeafEvent(13)), newBitUnPack(packer.Pack()).decodeEvent())
 	// Output:
 	// dec(<<1:1, 0:1, 0:2>>) = 0
 	// dec(<<1:1, 0:1, 1:2>>) = 1
@@ -34,17 +34,17 @@ func ExampleBitUnPack_decodeEvent_Leaves() {
 
 func ExampleBitUnPack_decodeEvent_Nodes() {
 	packer := newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(0, 0, 1)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(0, 0, 1)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(0, 1, 0)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(0, 1, 0)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(0, 1, 1)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(0, 1, 1)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(1, 0, 1)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(1, 0, 1)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(1, 1, 0)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(1, 1, 0)), newBitUnPack(packer.Pack()).decodeEvent())
 	packer = newBitPack()
-	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newEvent().asNode(1, 1, 1)), newBitUnPack(packer.Pack()).decodeEvent())
+	fmt.Printf("dec(%s) = %s\n", packer.encodeEvent(newNodeEvent(1, 1, 1)), newBitUnPack(packer.Pack()).decodeEvent())
 	// Output:
 	// dec(<<0:1, 0:2, 1:1, 0:1, 1:2>>) = (0, 0, 1)
 	// dec(<<0:1, 1:2, 1:1, 0:1, 1:2>>) = (0, 1, 0)

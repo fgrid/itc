@@ -3,21 +3,35 @@ package itc
 import "fmt"
 
 func ExamplePackSimple() {
-	source, dest := exercisePack(newBitPack().push(2, 3).push(0, 1).push(1, 2))
+	bp := newBitPack()
+	bp.push(2, 3)
+	bp.push(0, 1)
+	bp.push(1, 2)
+	source, dest := exercisePack(bp)
 	fmt.Printf("Pack(%s) = %s\n", source, dest)
 	// Output:
 	// Pack(<<2:3, 0:1, 1:2>>) = 010001
 }
 
 func ExamplePackLarger() {
-	source, dest := exercisePack(newBitPack().push(2, 2).push(2, 2).push(2, 2).push(2, 2).push(2, 2))
+	bp := newBitPack()
+	bp.push(2, 2)
+	bp.push(2, 2)
+	bp.push(2, 2)
+	bp.push(2, 2)
+	bp.push(2, 2)
+	source, dest := exercisePack(bp)
 	fmt.Printf("Pack(%s) = %s\n", source, dest)
 	// Output:
 	// Pack(<<2:2, 2:2, 2:2, 2:2, 2:2>>) = 1010101010
 }
 
 func ExamplePackUneven() {
-	source, dest := exercisePack(newBitPack().push(6, 3).push(6, 3).push(6, 3))
+	bp := newBitPack()
+	bp.push(6, 3)
+	bp.push(6, 3)
+	bp.push(6, 3)
+	source, dest := exercisePack(bp)
 	fmt.Printf("Pack(%s) = %s\n", source, dest)
 	// Output:
 	// Pack(<<6:3, 6:3, 6:3>>) = 110110110
@@ -51,10 +65,10 @@ func ExampleBitPack_EnocdeId_Nodes() {
 }
 
 func ExampleBitPack_EncodeEvent_Leaves() {
-	source0 := newEventWithValue(1)
-	source1 := newEventWithValue(4)
-	source2 := newEventWithValue(8)
-	source3 := newEventWithValue(13)
+	source0 := newLeafEvent(1)
+	source1 := newLeafEvent(4)
+	source2 := newLeafEvent(8)
+	source3 := newLeafEvent(13)
 	fmt.Printf("enc(%2s, 2) = %s\n", source0, newBitPack().encodeEvent(source0))
 	fmt.Printf("enc(%2s, 2) = %s\n", source1, newBitPack().encodeEvent(source1))
 	fmt.Printf("enc(%2s, 2) = %s\n", source2, newBitPack().encodeEvent(source2))
@@ -67,12 +81,12 @@ func ExampleBitPack_EncodeEvent_Leaves() {
 }
 
 func ExampleBitPack_EncodeEvent_Nodes() {
-	source0 := newEvent().asNode(0, 0, 1)
-	source1 := newEvent().asNode(0, 1, 0)
-	source2 := newEvent().asNode(0, 1, 1)
-	source3 := newEvent().asNode(1, 0, 1)
-	source4 := newEvent().asNode(1, 1, 0)
-	source5 := newEvent().asNode(1, 1, 1)
+	source0 := newNodeEvent(0, 0, 1)
+	source1 := newNodeEvent(0, 1, 0)
+	source2 := newNodeEvent(0, 1, 1)
+	source3 := newNodeEvent(1, 0, 1)
+	source4 := newNodeEvent(1, 1, 0)
+	source5 := newNodeEvent(1, 1, 1)
 
 	fmt.Printf("enc(%2s) = %s\n", source0, newBitPack().encodeEvent(source0))
 	fmt.Printf("enc(%2s) = %s\n", source1, newBitPack().encodeEvent(source1))
