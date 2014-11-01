@@ -51,27 +51,35 @@ func (i *id) Split() (i1, i2 *id) {
 		// split(0) = (0, 0)
 		i1.value = 0
 		i2.value = 0
-	} else if i.isLeaf && i.value == 1 {
+		return
+	}
+	if i.isLeaf && i.value == 1 {
 		// split(1) = ((1,0), (0,1))
 		i1.asNode(1, 0)
 		i2.asNode(0, 1)
-	} else if (i.left.isLeaf && i.left.value == 0) && (!i.right.isLeaf || i.right.value == 1) {
+		return
+	}
+	if (i.left.isLeaf && i.left.value == 0) && (!i.right.isLeaf || i.right.value == 1) {
 		// split((0, i)) = ((0, i1), (0, i2)), where (i1, i2) = split(i)
 		r1, r2 := i.right.Split()
 		i1.asNodeWithIds(newIDWithValue(0), r1)
 		i2.asNodeWithIds(newIDWithValue(0), r2)
-	} else if (!i.left.isLeaf || i.left.value == 1) && (i.right.isLeaf && i.right.value == 0) {
+		return
+	}
+	if (!i.left.isLeaf || i.left.value == 1) && (i.right.isLeaf && i.right.value == 0) {
 		// split((i, 0)) = ((i1, 0), (i2, 0)), where (i1, i2) = split(i)
 		l1, l2 := i.left.Split()
 		i1.asNodeWithIds(l1, newIDWithValue(0))
 		i2.asNodeWithIds(l2, newIDWithValue(0))
-	} else if (!i.left.isLeaf || i.left.value == 1) && (!i.right.isLeaf || i.right.value == 1) {
+		return
+	}
+	if (!i.left.isLeaf || i.left.value == 1) && (!i.right.isLeaf || i.right.value == 1) {
 		// split((i1, i2)) = ((i1, 0), (0, i2))
 		i1.asNodeWithIds(i.left, newIDWithValue(0))
 		i2.asNodeWithIds(newIDWithValue(0), i.right)
-	} else {
-		log.Fatalf("unable to split id with unexpected setup: %s", i.String())
+		return
 	}
+	log.Fatalf("unable to split id with unexpected setup: %s", i.String())
 	return
 }
 
