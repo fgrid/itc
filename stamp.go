@@ -7,32 +7,37 @@
 // that encodes causally known events.
 package itc
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/fgrid/itc/bit"
+	"github.com/fgrid/itc/event"
+	"github.com/fgrid/itc/id"
+)
 
 // Stamp declares the state of the clock for a given identity and a given stream of events.
 type Stamp struct {
-	event *event
-	id    *id
+	event *event.Event
+	id    *id.ID
 }
 
 // NewStamp creates a new so called seed-Stamp (represented as: (1, 0)).
 func NewStamp() *Stamp {
-	return &Stamp{event: newEvent(), id: newID()}
+	return &Stamp{event: event.New(), id: id.New()}
 }
 
 // Event adds a new event to the clock's event component, so that if (i, e') results from event((i, e))
 // the causal ordering is such that e < e'.
 func (s *Stamp) Event() {
-	oldE := s.event.clone()
+	oldE := s.event.Clone()
 	newE := s.fill()
-	if newE.equals(oldE) {
+	if newE.Equals(oldE) {
 		s.event, _ = s.grow()
 	} else {
 		s.event = newE
 	}
 }
 
-func (s *Stamp) fill() *event {
+func (s *Stamp) fill() *event.Event {
 	return fill(s.id, s.event)
 }
 
@@ -43,29 +48,29 @@ func (s *Stamp) Fork() *Stamp {
 	id1, id2 := s.id.Split()
 	s.id = id1
 	st.id = id2
-	st.event = s.event.clone()
+	st.event = s.event.Clone()
 	return st
 }
 
-func (s *Stamp) grow() (*event, int) {
+func (s *Stamp) grow() (*event.Event, int) {
 	return grow(s.id, s.event)
 }
 
 // Join merges two stamps, producing a new one.
 func (s *Stamp) Join(other *Stamp) {
-	s.id = newID().sum(s.id, other.id)
-	s.event = join(s.event, other.event)
+	s.id = id.New().Sum(s.id, other.id)
+	s.event = event.Join(s.event, other.event)
 }
 
-// Leq Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (leq).
-func (s *Stamp) Leq(other *Stamp) bool {
-	return leq(s.event, other.event)
+// LEQ Compares the stamp with the given other stamp and returns 'true' if this stamp is less or equal (LEQ).
+func (s *Stamp) LEQ(other *Stamp) bool {
+	return event.LEQ(s.event, other.event)
 }
 
 // MarshalBinary encodes the stamp s into a binary form and returns the result.
 func (s *Stamp) MarshalBinary() ([]byte, error) {
-	bp := newBitPack()
-	bp.encodeStamp(s)
+	bp := bit.NewPack()
+	s.Pack(bp)
 	return bp.Pack(), nil
 }
 
@@ -76,67 +81,77 @@ func (s *Stamp) String() string {
 
 // UnmarshalBinary decodes the stamp s from the given binary form data (created by MarshalBinary).
 func (s *Stamp) UnmarshalBinary(data []byte) error {
-	bup := newBitUnPack(data)
-	bup.decodeStamp(s)
+	bup := bit.NewUnPack(data)
+	s.UnPack(bup)
 	return nil
 }
 
-func fill(i *id, e *event) *event {
-	if i.isLeaf {
-		if i.value == 0 {
+func fill(i *id.ID, e *event.Event) *event.Event {
+	if i.IsLeaf {
+		if i.Value == 0 {
 			return e
 		}
-		return newLeafEvent(e.max())
+		return event.NewLeaf(e.Max())
 	}
-	if e.isLeaf {
+	if e.IsLeaf {
 		return e
 	}
-	r := newNodeEvent(e.value, 0, 0)
-	if i.left.isLeaf && i.left.value == 1 {
-		r.right = fill(i.right, e.right)
-		r.left = newLeafEvent(max(e.left.max(), r.right.min()))
-	} else if i.right.isLeaf && i.right.value == 1 {
-		r.left = fill(i.left, e.left)
-		r.right = newLeafEvent(max(e.right.max(), r.left.min()))
+	r := event.NewEmptyNode(e.Value)
+	if i.Left.IsLeaf && i.Left.Value == 1 {
+		r.Right = fill(i.Right, e.Right)
+		r.Left = event.NewLeaf(event.Max(e.Left.Max(), r.Right.Min()))
+	} else if i.Right.IsLeaf && i.Right.Value == 1 {
+		r.Left = fill(i.Left, e.Left)
+		r.Right = event.NewLeaf(event.Max(e.Right.Max(), r.Left.Min()))
 	} else {
-		r.left = fill(i.left, e.left)
-		r.right = fill(i.right, e.right)
+		r.Left = fill(i.Left, e.Left)
+		r.Right = fill(i.Right, e.Right)
 	}
-	return r.norm()
+	return r.Norm()
 }
 
-func grow(i *id, e *event) (*event, int) {
-	if e.isLeaf {
-		if i.isLeaf && i.value == 1 {
-			return newLeafEvent(e.value + 1), 0
+func grow(i *id.ID, e *event.Event) (*event.Event, int) {
+	if e.IsLeaf {
+		if i.IsLeaf && i.Value == 1 {
+			return event.NewLeaf(e.Value + 1), 0
 		}
-		ex, c := grow(i, newNodeEvent(e.value, 0, 0))
+		ex, c := grow(i, event.NewEmptyNode(e.Value))
 		return ex, c + 99999
 	}
-	if i.left.isLeaf && i.left.value == 0 {
-		exr, cr := grow(i.right, e.right)
-		r := newNodeEvent(e.value, 0, 0)
-		r.left = e.left
-		r.right = exr
+	if i.Left.IsLeaf && i.Left.Value == 0 {
+		exr, cr := grow(i.Right, e.Right)
+		r := event.NewEmptyNode(e.Value)
+		r.Left = e.Left
+		r.Right = exr
 		return r, cr + 1
 	}
-	if i.right.isLeaf && i.right.value == 0 {
-		exl, cl := grow(i.left, e.left)
-		r := newNodeEvent(e.value, 0, 0)
-		r.left = exl
-		r.right = e.right
+	if i.Right.IsLeaf && i.Right.Value == 0 {
+		exl, cl := grow(i.Left, e.Left)
+		r := event.NewEmptyNode(e.Value)
+		r.Left = exl
+		r.Right = e.Right
 		return r, cl + 1
 	}
-	exl, cl := grow(i.left, e.left)
-	exr, cr := grow(i.right, e.right)
+	exl, cl := grow(i.Left, e.Left)
+	exr, cr := grow(i.Right, e.Right)
 	if cl < cr {
-		r := newNodeEvent(e.value, 0, 0)
-		r.left = exl
-		r.right = e.right
+		r := event.NewEmptyNode(e.Value)
+		r.Left = exl
+		r.Right = e.Right
 		return r, cl + 1
 	}
-	r := newNodeEvent(e.value, 0, 0)
-	r.left = e.left
-	r.right = exr
+	r := event.NewEmptyNode(e.Value)
+	r.Left = e.Left
+	r.Right = exr
 	return r, cr + 1
+}
+
+func (s *Stamp) Pack(p *bit.Pack) {
+	s.id.Pack(p)
+	s.event.Pack(p)
+}
+
+func (s *Stamp) UnPack(bup *bit.UnPack) {
+	s.id = id.UnPack(bup)
+	s.event = event.UnPack(bup)
 }
